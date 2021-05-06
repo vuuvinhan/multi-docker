@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pvv/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pvv/react-test npm test
+
+after_success:
+  - docker build -t pvv/multi-client ./client
+  - docker build -t pvv/multi-nginx ./nginx
+  - docker build -t pvv/multi-server ./server
+  - docker build -t pvv/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push pvv/multi-client
+  - docker push pvv/multi-nginx
+  - docker push pvv/multi-server
+  - docker push pvv/multi-worker
